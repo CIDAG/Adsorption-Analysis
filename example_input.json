@@ -1,0 +1,23 @@
+{
+   "seed": -1,
+   "system_name": "CO-Ni13",
+   "system_name": "CO-Ni13",
+   "input_folder_path": "data/Ni13-CO_structures_pbe/",
+   "output_folder_path": "data/Ni13-CO_structures_pbe/output/",
+   "method_of_k_selection": "silhouette",
+   "number_k_of_clusters": 2,
+   "silhouette_range": [2, 20, 1],
+   "number_of_random_runs": 50,
+   "molecule_indices": [0, 1],
+   "site_metric": "site_size",
+   "site_size": 6,
+   "site_radius": 0,
+   "fixed_substrate_atomic_number": 0,
+   "z_exp": 2.4,
+   "d_exp": 1.0,
+   "use_energy": false,
+   "scale_dataset": true,
+   "projection_numbers": true,
+   "projection_repr": true,
+   "projection_tsne": true
+}
