@@ -18,7 +18,7 @@ This tool reads XYZ files of adsorption systems and cluster them using K-Means a
 ## User guide
 
 - **userguide.md:** recommended if reading from GitHub page
-- **userguide.pdf:** recommended if reading off-line
+- **userguide.html:** recommended if reading off-line
 
 ## Other files
 

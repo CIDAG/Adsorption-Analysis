@@ -4,7 +4,6 @@ from __future__ import annotations
 # built-in
 import glob
 import pathlib
-import typing
 import shutil
 
 # numpy
@@ -194,115 +193,6 @@ def build_dataset_site_size(
     return dataset, subs, energies, site_atoms
 
 
-def find_atoms_in_site_radius(
-    mol: tools.XYZData, clus: tools.XYZData, site_radius: float
-) -> int:
-    """
-    Find the count of atoms inside the site radius
-    """
-    # find the closest cluster atom to the molecule
-    closest_atom = find_closest_atoms_to_mol(mol, clus, 1)
-
-    # calc dists between the closest clus atom to the mol and other clus atoms
-    distances = [np.linalg.norm(closest_atom.coords - c.coords) for c in clus]
-
-    # return the count of atoms within the specified radius
-    return np.sum(np.array(distances) < site_radius)
-
-
-def calculate_average_atoms(
-    xyz_file_names: list[str],
-    xyz_data: list[tools.XYZData],
-    molecule_indices: npt.NDArray[int],
-    site_radius: float,
-) -> int:
-    """
-    Get the average number of atoms in site radius
-    """
-    avg_atoms_in_site_radius = 0
-
-    for entry in xyz_data:
-        mol, clus = extract_molecule(entry, molecule_indices)
-        avg_atoms_in_site_radius += find_atoms_in_site_radius(
-            mol, clus, site_radius
-        )
-
-    # calculate average and round to the next integer
-    return np.ceil(avg_atoms_in_site_radius / len(xyz_file_names)).astype(int)
-
-
-def build_dataset_site_radius(
-    xyz_file_names: list[str],
-    xyz_data: list[tools.XYZData],
-    molecule_indices: npt.NDArray[int],
-    site_radius: float,
-    fixed_substrate_atomic_number: int,
-    z_exp: int | float,
-    d_exp: int | float,
-    scale: bool,
-) -> tuple[
-    npt.NDArray[float],
-    npt.NDArray[float],
-    npt.NDArray[float],
-    list,
-    int,
-]:
-    """
-    Build the dataset considering elements within a radius to belong to the
-    adsorption site
-    """
-
-    avg_atoms_in_site_radius = calculate_average_atoms(
-        xyz_file_names, xyz_data, molecule_indices, site_radius
-    )
-
-    # generate base dataset
-    dataset = np.empty((1, len(molecule_indices) + avg_atoms_in_site_radius))
-
-    # generate array to store the energies
-    energies = np.empty(0)
-
-    # generate array to store average of the atomic numbers in substrate
-    subs = np.empty(0)
-
-    # site atoms
-    site_atoms = []
-
-    # populate the dataset with the eigenvalues
-    for entry in tqdm.tqdm(xyz_data, total=len(xyz_data)):
-        mol, clus = extract_molecule(entry, molecule_indices)
-
-        closest_atom = find_closest_atoms_to_mol(mol, clus, 1)
-        closest = find_closest_atoms_to_mol(
-            closest_atom, clus, avg_atoms_in_site_radius
-        )
-
-        # populate site atoms arrays with atoms
-        site_atoms.append(closest.atoms)
-
-        # populate substrates array with average of atomic nums in substrate
-        subs = np.append(
-            subs, np.array([tools.atomic_num[x] for x in closest.atoms]).mean()
-        )
-
-        # populate energy array with energy
-        energies = np.append(energies, entry.energy)
-
-        equalize_z(closest, fixed_substrate_atomic_number)
-        mol_join_closest = mol + closest
-        eigen = tools.eigen_coulomb(mol_join_closest, z_exp, d_exp)
-        dataset = np.vstack([dataset, eigen])
-
-    # remove first useless line
-    dataset = dataset[1:]
-
-    # scale the data, if so desired
-    if scale:
-        dataset = StandardScaler().fit_transform(dataset)
-
-    return dataset, subs, energies, site_atoms, avg_atoms_in_site_radius
-
-
 def calculate_silhouette(
     data: npt.NDArray[float], labels: npt.NDArray[int], k: int
 ) -> float:
@@ -338,7 +228,7 @@ def perform_clustering_single_k(
 
     c = Cluster(1)
 
-    kmeans = KMeans(n_clusters=k, random_state=seed).fit(data)
+    kmeans = KMeans(n_clusters=k, random_state=seed, n_init="auto").fit(data)
     score = calculate_silhouette(data, kmeans.labels_, k)
     wcss = kmeans.inertia_
 
@@ -361,7 +251,9 @@ def perform_clustering(
 
     # perform K-Means for all possible values of K
     for k in tqdm.tqdm(range(*srange)):
-        kmeans = KMeans(n_clusters=k, random_state=seed).fit(data)
+        kmeans = KMeans(n_clusters=k, random_state=seed, n_init="auto").fit(
+            data
+        )
         score = calculate_silhouette(data, kmeans.labels_, k)
         wcss = kmeans.inertia_
 
@@ -386,7 +278,9 @@ def perform_clustering_many_runs_single_k(
 
     # perform K-Means for all available seeds
     for i, seed in enumerate(seed_list):
-        kmeans = KMeans(n_clusters=k, random_state=seed).fit(data)
+        kmeans = KMeans(n_clusters=k, random_state=seed, n_init="auto").fit(
+            data
+        )
         score = calculate_silhouette(data, kmeans.labels_, k)
         wcss = kmeans.inertia_
 
@@ -415,7 +309,9 @@ def perform_clustering_many_runs(
 
         # perform K-Means for all available seeds
         for i, seed in enumerate(seed_list):
-            kmeans = KMeans(n_clusters=k, random_state=seed).fit(data)
+            kmeans = KMeans(n_clusters=k, random_state=seed, n_init="auto").fit(
+                data
+            )
             score = calculate_silhouette(data, kmeans.labels_, k)
             wcss = kmeans.inertia_
 
@@ -787,7 +683,9 @@ def output_number_of_random_runs(
     plt.xticks(())
     plt.yticks(())
     plt.tight_layout()
-    plt.savefig(path + f"/{treat_fname(system_name)}_PCA_{display_k}.pdf", dpi=300)
+    plt.savefig(
+        path + f"/{treat_fname(system_name)}_PCA_{display_k}.pdf", dpi=300
+    )
 
     # TSNE ====================================================================
     if projection_tsne:
@@ -1044,8 +942,7 @@ def pipeline(
     silhouette_range: npt.NDArray[int],
     number_of_random_runs: int,
     molecule_indices: npt.NDArray[int],
-    site_metric: str,
-    metric_val: int | float,
+    metric_val: int,
     fixed_substrate_atomic_number: int,
     z_exp: int | float,
     d_exp: int | float,
@@ -1068,37 +965,17 @@ def pipeline(
 
     print("[3/8] Building the dataset...")
     # site_size
-    if site_metric == "site_size":
-        dataset, subs, energies, site_atoms = build_dataset_site_size(
-            xyz_names,
-            xyz_data,
-            molecule_indices,
-            metric_val,
-            fixed_substrate_atomic_number,
-            z_exp,
-            d_exp,
-            scale_dataset,
-        )
-        n_atoms = metric_val
-
-    # site_radius
-    else:
-        (
-            dataset,
-            subs,
-            energies,
-            site_atoms,
-            n_atoms,
-        ) = build_dataset_site_radius(
-            xyz_names,
-            xyz_data,
-            molecule_indices,
-            metric_val,
-            fixed_substrate_atomic_number,
-            z_exp,
-            d_exp,
-            scale_dataset,
-        )
+    dataset, subs, energies, site_atoms = build_dataset_site_size(
+        xyz_names,
+        xyz_data,
+        molecule_indices,
+        metric_val,
+        fixed_substrate_atomic_number,
+        z_exp,
+        d_exp,
+        scale_dataset,
+    )
+    n_atoms = metric_val
 
     print("[4/8] Performing clustering...")
 
@@ -1181,9 +1058,7 @@ def pipeline(
                 pseudo_seeds, dataset, silhouette_range
             )
 
-        best_k, best_mean, k_scores, nmi_table = extract_best_k(
-            clusters_data
-        )
+        best_k, best_mean, k_scores, nmi_table = extract_best_k(clusters_data)
 
         result = pick_best_candidate(clusters_data, best_k)
 

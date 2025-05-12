@@ -24,7 +24,7 @@ This document is a guide on how to install and use the Adsorption-Analysis tool.
 
 ![Adsorption-Analysis flowchart](figures/flowchart_si.png "Adsorption-Analysis flowchart")
 
-First, the program reads all XYZ files provided by the user, then it applies a custom "local" version of the Coulomb Matrix (through `site_metric` and other settings) to each data entry. After some pre-processing, the data is sent to K-Means clustering algorithm, which clusters it according to the present adsorption modes. The amount of clusters can be specified by the user, or automatically picked using a custom silhouette metric. The program can also run many iterations of the clustering process to make sure a good local minimum is found by K-Means. Finally, Adsorption-Analysis outputs the clustered files, as well as textual information and charts.
+First, the program reads all XYZ files provided by the user, then it applies a custom "local" version of the Coulomb Matrix to each data entry. After some pre-processing, the data is sent to K-Means clustering algorithm, which clusters it according to the present adsorption modes. The amount of clusters can be specified by the user, or automatically picked using a custom silhouette metric. The program can also run many iterations of the clustering process to make sure a good local minimum is found by K-Means. Finally, Adsorption-Analysis outputs the clustered files, as well as textual information and charts.
 
 ## Installation
 
@@ -104,9 +104,7 @@ The parameters necessary in the JSON are the following:
 | `silhouette_range`              | list of 3 integers | Only used if `method_of_k_selection` is **silhouette**. This should be a list with 3 values: starting **K**, ending **K** and step. The program clusters with the informed range of **K** and automatically chooses a value based on the *Silhouette Criterion*                                                                                                      |
 | `number_of_random_runs`         | integer            | Execute the clustering procedure this amount of times and get the best outcome                                                                                                                                                                                                                                                                                       |
 | `molecule_indices`              | list of N integers | List containing the indices (from XYZ files) of the atoms that compose the molecule                                                                                                                                                                                                                                                                                  |
-| `site_metric`                   | string             | How the site atoms will be selected. Can be either **site_size** or **site_radius**                                                                                                                                                                                                                                                                                  |
-| `site_size`                     | integer            | Only used if `site_metric` is **site_size**. This informs how many of the closest atoms from the substrate to the molecule should be used to compute the *Coulomb Matrix*                                                                                                                                                                                            |
-| `site_radius`                   | float              | Only used if `site_metric` is **site_radius**. This informs the radius from the closest atom from the molecule to the substrate, where atoms within it are counted and the average amount of atoms is uatoms within it are counted and the average amount of atoms is used to pick this same amount from all the systems, to use in the *Coulomb Matrix* calculation |
+| `site_size`                     | integer            | This informs how many of the closest atoms from the substrate to the molecule should be used to compute the *Coulomb Matrix*                                                                                                                                                                                            |
 | `fixed_substrate_atomic_number` | integer            | Substitute every atom by the one represented by this atomic number                                                                                                                                                                                                                                                                                                   |
 | `z_exp`                         | float              | Z exponent of the *Coulomb Matrix*                                                                                                                                                                                                                                                                                                                                   |
 | `d_exp`                         | float              | D exponent of the *Coulomb Matrix*                                                                                                                                                                                                                                                                                                                                   |
@@ -130,9 +128,7 @@ Once you understood the necessary parameters and their respective data types, bu
     "silhouette_range": [2, 10, 2],
     "number_of_random_runs": 10,
     "molecule_indices": [0, 1, 2, 3],
-    "site_metric": "site_size",
     "site_size": 4,
-    "site_radius": 10.0,
     "fixed_substrate_atomic_number": 40,
     "z_exp": 2.4,
     "d_exp": 1.0,
@@ -143,7 +139,7 @@ Once you understood the necessary parameters and their respective data types, bu
     "projection_tsne": true
 }
 ```
-Notice that, even though `number_k_of_clusters` is not being used (since `method_of_k_selection` is set as `silhouette`), it still must be present and can assume any valid value. The same applies for `silhouette_range` if `method_k_of_selection` is set as `user`, as well as `site_size` and `site_radius`, regardless of the chosen `site_metric`.
+Notice that, even though `number_k_of_clusters` is not being used (since `method_of_k_selection` is set as `silhouette`), it still must be present and can assume any valid value. The same applies for `silhouette_range` if `method_k_of_selection` is set as `user`.
 
 ## Output
 
@@ -175,9 +171,7 @@ This example showcases multiple runs, using different values for `site_size`, wh
     "silhouette_range": [2, 20, 1],
     "number_of_random_runs": 50,
     "molecule_indices": [0, 1],
-    "site_metric": "site_size",
     <*> "site_size": 6, 7, 8, 9, 10, 11, 12, 13,
-    "site_radius": 0,
     "fixed_substrate_atomic_number": 0,
     "z_exp": 2.4,
     "d_exp": 1.0,
@@ -208,9 +202,7 @@ This example varies the number of random executions, as well as if the represent
     "silhouette_range": [2, 20, 1],
     <*> "number_of_random_runs":  20, 30, 40, 50,
     "molecule_indices": [0, 1],
-    "site_metric": "site_size",
     "site_size": 8,
-    "site_radius": 0,
     "fixed_substrate_atomic_number": 0,
     "z_exp": 2.4,
     "d_exp": 1.0,
@@ -241,9 +233,7 @@ Here, you can observe the outcome of a highly reliable clustering process, as in
     "silhouette_range": [2, 20, 1],
     "number_of_random_runs": 50,
     "molecule_indices": [0, 1],
-    "site_metric": "site_size",
     "site_size": 8,
-    "site_radius": 0,
     "fixed_substrate_atomic_number": 0,
     "z_exp": 2.4,
     "d_exp": 1.0,
@@ -274,9 +264,7 @@ This example employs `user` rather than `silhouette` to determine the number `K`
     "silhouette_range": [2, 20, 1],
     "number_of_random_runs":  1,
     "molecule_indices": [0, 1],
-    "site_metric": "site_size",
     "site_size": 8,
-    "site_radius": 0,
     "fixed_substrate_atomic_number": 0,
     "z_exp": 2.4,
     "d_exp": 1.0,
@@ -307,9 +295,7 @@ Here, it's employed a very similar approach to the example above, with a slight 
     "silhouette_range": [2, 20, 1],
     "number_of_random_runs":  1,
     "molecule_indices": [0, 1],
-    "site_metric": "site_size",
     "site_size": 8,
-    "site_radius": 0,
     "fixed_substrate_atomic_number": 0,
     "z_exp": 2.4,
     "d_exp": 1.0,
@@ -323,204 +309,6 @@ Here, it's employed a very similar approach to the example above, with a slight 
 
 #### Charts
 ![example_5](figures/figure_5.png "Example 5")
-
-### Example 6
-
-This example is the same as **Example 1**, but using and varying `site_radius` instead of `site_size`.
-
-#### JSON
-```JSON
-{
-    "seed": -1,
-    "system_name": "CO-Ni13",
-    "input_folder_path": "data/Ni13-CO_structures_pbe/",
-    "output_folder_path": "data/Ni13-CO_structures_pbe/output/",
-    "method_of_k_selection": "silhouette",
-    "number_k_of_clusters": 2,
-    "silhouette_range": [2, 20, 1],
-    "number_of_random_runs":  50,
-    "molecule_indices": [0, 1],
-    "site_metric": "site_radius",
-    "site_size": 0,
-    <*> "site_radius":  2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
-    "fixed_substrate_atomic_number": 0,
-    "z_exp": 2.4,
-    "d_exp": 1.0,
-    "use_energy": true,
-    "scale_dataset": true,
-    "projection_numbers": true,
-    "projection_repr": true,
-    "projection_tsne": true
-}
-```
-
-#### Charts
-![example_6](figures/figure_6.png "Example 6")
-
-### Example 7
-
-Here we have the same parameters as **Example 6**, but using the energy to obtain the representative samples.
-
-#### JSON
-```JSON
-{
-    "seed": -1,
-    "system_name": "CO-Ni13",
-    "input_folder_path": "data/Ni13-CO_structures_pbe/",
-    "output_folder_path": "data/Ni13-CO_structures_pbe/output/",
-    "method_of_k_selection": "silhouette",
-    "number_k_of_clusters": 2,
-    "silhouette_range": [2, 20, 1],
-    "number_of_random_runs":  50,
-    "molecule_indices": [0, 1],
-    "site_metric": "site_radius",
-    "site_size": 0,
-    <*> "site_radius":  2.5, 3.0, 3.5, 4.0, 4.5, 5.0,
-    "fixed_substrate_atomic_number": 0,
-    "z_exp": 2.4,
-    "d_exp": 1.0,
-    "use_energy": true,
-    "scale_dataset": true,
-    "projection_numbers": true,
-    "projection_repr": true,
-    "projection_tsne": true
-}
-```
-
-#### Charts
-![example_7](figures/figure_7.png "Example 7")
-
-### Example 8
-
-Same parameters as **Example 2**, but using `site_radius` instead of `site_size`, and all the tests were made using the energy.
-
-#### JSON
-```JSON
-{
-    "seed": -1,
-    "system_name": "CO-Ni13",
-    "input_folder_path": "data/Ni13-CO_structures_pbe/",
-    "output_folder_path": "data/Ni13-CO_structures_pbe/output/",
-    "method_of_k_selection": "silhouette",
-    "number_k_of_clusters": 2,
-    "silhouette_range":  [2, 20, 1],
-    <*> "number_of_random_runs": 20, 30, 40, 50,
-    "molecule_indices": [0, 1],
-    "site_metric": "site_radius",
-    "site_size": 0,
-    "site_radius":  4.0,
-    "fixed_substrate_atomic_number": 0,
-    "z_exp": 2.4,
-    "d_exp": 1.0,
-    "use_energy": true,
-    "scale_dataset": true,
-    "projection_numbers": true,
-    "projection_repr": true,
-    "projection_tsne": true
-}
-```
-
-#### Charts
-![example_8](figures/figure_8.png "Example 8")
-
-### Example 9
-
-This example uses the same parameters as **Example 8**, but fixes the number of runs as 50 and uses centroids, instead of energies to get representatives.
-
-#### JSON
-```JSON
-{
-    "seed": -1,
-    "system_name": "CO-Ni13",
-    "input_folder_path": "data/Ni13-CO_structures_pbe/",
-    "output_folder_path": "data/Ni13-CO_structures_pbe/output/",
-    "method_of_k_selection": "silhouette",
-    "number_k_of_clusters":  2,
-    "silhouette_range":  [2, 20, 1],
-    "number_of_random_runs": 50,
-    "molecule_indices": [0, 1],
-    "site_metric": "site_radius",
-    "site_size": 0,
-    "site_radius":  4.0,
-    "fixed_substrate_atomic_number": 0,
-    "z_exp": 2.4,
-    "d_exp": 1.0,
-    "use_energy": false,
-    "scale_dataset": true,
-    "projection_numbers": true,
-    "projection_repr": true,
-    "projection_tsne": true
-}
-```
-
-#### Charts
-![example_9](figures/figure_9.png "Example 9")
-
-### Example 10
-
-This example configures the `method_of_k_selection` as `user` and sets `K=9`. Similar to **Example 4**, this choice of `K` yields the highest custom silhouette score, indicating it would have been automatically selected by the program. Again, this option is particularly useful when the specialist possesses prior knowledge of the correct number of clusters or prefers an alternative criterion over the default program's choice.
-
-#### JSON
-```JSON
-{
-    "seed": -1,
-    "system_name": "CO-Ni13",
-    "input_folder_path": "data/Ni13-CO_structures_pbe/",
-    "output_folder_path": "data/Ni13-CO_structures_pbe/output/",
-    "method_of_k_selection": "user",
-    "number_k_of_clusters":  9,
-    "silhouette_range":  [2, 20, 1],
-    "number_of_random_runs": 1,
-    "molecule_indices": [0, 1],
-    "site_metric": "site_radius",
-    "site_size": 0,
-    "site_radius":  4.0,
-    "fixed_substrate_atomic_number": 0,
-    "z_exp": 2.4,
-    "d_exp": 1.0,
-    "use_energy": true,
-    "scale_dataset": true,
-    "projection_numbers": true,
-    "projection_repr": true,
-    "projection_tsne": true
-}
-```
-
-#### Charts
-![example_10](figures/figure_10.png "Example 10")
-
-### Example 11
-
-Same as **Example 10**, but using proximity to centroids instead of lowest energies to select the representative samples.
-
-#### JSON
-```JSON
-{
-    "seed": -1,
-    "system_name": "CO-Ni13",
-    "input_folder_path": "data/Ni13-CO_structures_pbe/",
-    "output_folder_path": "data/Ni13-CO_structures_pbe/output/",
-    "method_of_k_selection": "user",
-    "number_k_of_clusters":  9,
-    "silhouette_range":  [2, 20, 1],
-    "number_of_random_runs": 1,
-    "molecule_indices": [0, 1],
-    "site_metric": "site_radius",
-    "site_size": 0,
-    "site_radius":  4.0,
-    "fixed_substrate_atomic_number": 0,
-    "z_exp": 2.4,
-    "d_exp": 1.0,
-    "use_energy": false,
-    "scale_dataset": true,
-    "projection_numbers": true,
-    "projection_repr": true,
-    "projection_tsne": true
-}
-```
-
-#### Charts
-![example_11](figures/figure_11.png "Example 11")
 
 ## Textual output
 

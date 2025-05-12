@@ -91,9 +91,7 @@ def validate_adsp_json(j: dict) -> bool:
         print("[ERROR] silhouette_range not specified")
         return False
     if type(j["silhouette_range"]) != list or len(j["silhouette_range"]) != 3:
-        print(
-            "[ERROR] silhouette_range must be a list with 3 integers"
-        )
+        print("[ERROR] silhouette_range must be a list with 3 integers")
         return False
     for i in j["silhouette_range"]:
         if type(i) != int:
@@ -113,40 +111,19 @@ def validate_adsp_json(j: dict) -> bool:
         print("[ERROR] molecule_indices not specified")
         return False
     if type(j["molecule_indices"]) != list or not j["molecule_indices"]:
-        print(
-            "[ERROR] molecule_indices must be a list with at least 1 integer"
-        )
+        print("[ERROR] molecule_indices must be a list with at least 1 integer")
         return False
     for i in j["molecule_indices"]:
         if type(i) != int:
             print("[ERROR] molecule_indices elements must be integers")
             return False
 
-    # site_metric
-    if j.get("site_metric", "ERRNF") == "ERRNF" or not j["site_metric"]:
-        print("[ERROR] site_metric not specified")
-        return False
-    if type(j["site_metric"]) != str:
-        print("[ERROR] site_metric must be a string")
-        return False
-
     # metric_val
-    if j["site_metric"] == "site_size":
-        if j.get("site_size", "ERR_NOT_FOUND") == "ERR_NOT_FOUND":
-            print("[ERROR] site_size not specified")
-            return False
-        if type(j["site_size"]) != int:
-            print("[ERROR] site_size must be an integer")
-            return False
-    elif j["site_metric"] == "site_radius":
-        if j.get("site_radius", "ERR_NOT_FOUND") == "ERR_NOT_FOUND":
-            print("[ERROR] site_radius not specified")
-            return False
-        if type(j["site_radius"]) != float and type(j["site_radius"]) != int:
-            print("[ERROR] site_radius must be an integer or a float")
-            return False
-    else:
-        print("[ERROR] invalid site_metric. Either site_size or site_radius.")
+    if j.get("site_size", "ERR_NOT_FOUND") == "ERR_NOT_FOUND":
+        print("[ERROR] site_size not specified")
+        return False
+    if type(j["site_size"]) != int:
+        print("[ERROR] site_size must be an integer")
         return False
 
     # fixed_substrate_atomic_number
@@ -244,11 +221,10 @@ def collect_input() -> (
         str,
         str,
         int,
-        npt.NDArray[int],
+        npt.NDArray[np.int_],
         int,
-        npt.NDArray[int],
-        str,
-        int | float,
+        npt.NDArray[np.int_],
+        int,
         int,
         int | float,
         int | float,
@@ -297,10 +273,7 @@ def collect_input() -> (
         j["silhouette_range"],
         j["number_of_random_runs"],
         np.array(j["molecule_indices"]),
-        j["site_metric"],
-        j["site_size"]
-        if j["site_metric"] == "site_size"
-        else j["site_radius"],
+        j["site_size"],
         j["fixed_substrate_atomic_number"],
         j["z_exp"],
         j["d_exp"],
